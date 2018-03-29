@@ -27,7 +27,6 @@ import java.util.Map;
 public class MovieCrawler {
 
     private static String username = "17621216043";
-    private static String password = "921228";
 
     private String cookie;
     private Map<String, String> cookieMap = new HashMap<>();
@@ -36,10 +35,11 @@ public class MovieCrawler {
 
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    // 直接get获取列表。无需登陆
     public static void getMovies() throws IOException {
         JsonObject param = new JsonObject();
-        String movies = "";
-        String comingMovies = "";
+        StringBuffer moviesBuffer = new StringBuffer();
+        StringBuffer comingMoviesBuffer = new StringBuffer();
         String url = "http://maoyan.com/cinema/17146";
         Document html = Jsoup.connect(url).method(Connection.Method.GET).get();
         Elements divs = html.select("div.show-list");
@@ -56,11 +56,13 @@ public class MovieCrawler {
             String watchTime = div.select("span.date-item.active").get(0).text();
             logger.info("电影：{}，类型：{}，主演：{}，时长：{}，观影时间：{}", movieName, type, actor, time, watchTime);
             if (watchTime.contains("今天")) {
-                movies += movieName + "（" + actor + "）" + "、";
+                moviesBuffer.append(movieName).append("(").append(actor != null ? actor : "无").append(")、");
             } else {
-                comingMovies += movieName + "（" + actor + "）" + "、";
+                comingMoviesBuffer.append(movieName).append("(").append(actor != null ? actor : "无").append(")、");
             }
         }
+        String movies = moviesBuffer.toString();
+        String comingMovies = comingMoviesBuffer.toString();
         if (movies.endsWith("、")) {
             movies = movies.substring(0, movies.length() - 1);
         }
@@ -71,17 +73,10 @@ public class MovieCrawler {
         param.addProperty("movies", movies);
         param.addProperty("comingMovies", comingMovies);
         try {
-            logger.debug(movies);
-            logger.debug(comingMovies);
-            logger.debug(param.toString().length() + "");
             SmsUtils.sendMsg("17621216043", "电影资讯", "SMS_129745677", param.toString());
             logger.info("推送完成，时间：{}", sdf.format(new Date()));
         } catch (ClientException e) {
             logger.error("短信发送失败，", e);
         }
-    }
-
-    public static void main(String[] args) throws Exception {
-        getMovies();
     }
 }
