@@ -74,9 +74,13 @@ public class MovieCrawler {
         param.addProperty("comingMovies", comingMovies);
         try {
             SmsUtils.sendMsg("17621216043", "电影资讯", "SMS_129745677", param.toString());
-            logger.info("推送完成，时间：{}", sdf.format(new Date()));
+            logger.error("短信发送成功，时间：{}", sdf.format(new Date()));
         } catch (ClientException e) {
             logger.error("短信发送失败，", e);
         }
+    }
+
+    public static void main(String[] args) throws IOException {
+        getMovies();
     }
 }
